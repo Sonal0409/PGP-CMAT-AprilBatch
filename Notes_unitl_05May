@@ -1,0 +1,1164 @@
+
+Automation is and has always been an imaportant part of Devops which targets accelerating Innovation and faster deployment
+Automation allows teams to perform and complete repeated tasks in less time
+
+
+If there is no Automation:
+========================
+
+> if we have hundreds of servers where we have to 
+     - install software
+     - update files
+     - create users
+     - copy scripts
+     - deploy Applications
+
+If we have to do it manually:
+     - time consuming
+     - multiple errors
+     - application crash
+     - all updates may not be available
+     - no tracking of what steps were executed
+     - log of who executed the steps, when they were executed
+     - maintain seperate steps and files for different OS
+
+
+To address above challenges we have to use automation tool - Configuragtion management
+
+Configuration: Making changes to available infrastructure for application to run without any issues.
+
+Various environment : Dev, QA, Prod
+
+- each environment has different set of servers
+- traditionally we would use shell scripts to update these environments with our application and its depeneded softwares
+
+We will now use CM tools that can do changes on various VMs
+
+
+Features of CM tools:
+======================
+
+ - Manage software confiurations effectively
+ - bring consistency across the servers in an environment
+ - we will write code to make configuration changes using the CM tool that will bring consistency across the environment
+ - We can version control the code written
+ - logs genrated which will give information about changes applied on various servers
+
+==========================================
+
+Various CM tools:
+===========================================
+
+Chef, puppet , ansible and SaltStack
+
+
+
+All the tools work in the master and agent set up
+
+Chef: It is difficult to set up
+
+master : chef server will be installed
+Agent node: cheft client will be isntalled
+workstation: here we will write our configuration, which is tested and then pushed to chef server(master)
+
+Configurations are managed using Ruby - DSL
+Supports pull approach
+The agents pull the confiurationf rom the master node
+
+
+puppet: It is difficult to set up
+
+master : puppet server will be installed
+configuration written on puppet server and computed to a catalogue
+Agent node: puppet agent will be isntalled
+Master and agent communicate on SSL -> copy the certificate from agent node to master node 
+The master node signs the certificate only then the communication will begin
+Configurations are managed using puppet DSL, ruby
+Supports pull approach
+The agents pull the confiurationf rom the master node
+
+
+Ansible: It is simple and easy to set up
+
+master node: Ansible is installed 
+
+Agent node: no ansible component is installed
+
+Setting up the SSH communication between Master and agent node
+
+Configuration is written in YAML
+
+Supports push approach
+
+Saltstack:
+===============
+master node: The server is called as Salt master
+
+Agent node: they are claled as Salt minions
+
+Configuration is written in YAML
+
+Supports push approach
+
+===================================
+
+Pull aproach:
+==================
+
+> chef
+> puppet
+
+In the pull approach changes are pulled by the agent nodes 
+The controller or the master node will not make any changes on the agent nodes
+The agent nodes have a agent process installed on them
+these agent process will poll the controller on the scheduled time for changes
+if there are new changes computed on the master node, the agent process will pull the changes and execute on themselves
+
+
+Push approach:
+=================
+
+> saltstack
+>Ansible
+
+The code is written in the master/Controller node
+These tools can connect to the agent/host nodes parallely 
+These tools will then apply configuration code changes immediatly on the host/agent servers
+On the host/agent servers no agent process is present
+Everything is controlled by master node
+
+===================================
+
+
+Ansible:
+====================================
+
+A tool known for its simplicity and ease of use
+It is an open source tool and an automation platform for deployments and configurations
+Ansible is a command line tool
+It is a product of RedHat, always installed on Linus based OS
+It is based on Python, so every machine should have python installed on it
+However ansible agents/host servers can be Linux based OS or Windows OS
+Code is written in YAML
+Supports application deployments, system updates, networkign configurations
+It is an agent less tool
+Support cloud based infrastructure
+
+
+Components of Ansible:
+=====================
+
+Inventory:
+------------------
+Inventory is a simple file which is updated by the asnsible admin with hostnames or Ip address of host servers.
+The default name of this file is hosts
+The default location of hosts file is /etc/ansible
+The inventory file can be created in any location with any name
+There are 2 types of inventory files:
+
+1. Static Inventory file : user will create and update the inventory file with host ipaddress
+
+2. Dynamic Inventory file: mainly applicable when infrastructre is on the cloud
+In this case ansible will compute your inventory file and update the details of host servers
+
+Modules:
+--------------------------
+They are nothing but python scripts (ansible pre-written code) that are pushed to host servers to make changes.
+These modules accept some input parameters from the user to configure deisred changes on the servers
+
+example : copy modue -> accept input like source file location and destination
+
+get_url : url=https://example.com/file1 dest=/tmp
+
+Ansible works by connecting to your host servers and pushing these scripts which we call as ansible modules on them.
+
+https://docs.ansible.com/ansible/2.8/modules/list_of_all_modules.html
+
+We can create our own custom modules also in ansible using pyhton
+
+ansible.cfg :
+=================
+This is a defult file which comes with ansible itself
+
+The default location is /etc/ansible
+
+The main purpose of this file is to customize ansible settings and configurations
+
+In this file we can update prameters:
+
+ > defaults
+ > previlege
+
+
+playbooks:
+==========================
+
+You will write playbooks with configuration code. Code written in YAML
+2 main details:
+
+   > host details  -> where to do the changes
+   > tasks   -> which modules to be executed
+
+Playbook executed --> converted to python code --> using SSH it is copied on the host servers --> the python ocde is executed --> ansible cleans up the host servers by deleting the python code
+
+If the playbook is written for windows host then the playbook is converted to powershell script and copied on host servers using winrm
+
+
+==========================
+
+
+
+Day 1:
+Set up Ansible Controller Machine and Worker 1 and Worker2
+
+Connect to Configuration management Lab by clicking on launch lab button
+
+
+
+Click on Start Lab button on right side to start master and worker node.
+
+
+
+
+
+Click on master node and Click on Terminal
+
+
+
+Change the hostname of master node to Ansible Controller for easier identification
+On the terminal execute below command:
+#   sudo hostname AnsibleController
+#  sudo su –
+
+
+Let’s us Install Ansible on this Machine:
+********************************************************
+# ansible --version
+
+Setup Ansible:
+
+
+#  sudo apt-get install -y software-properties-common
+#  sudo apt-add-repository ppa:ansible/ansible
+#  sudo apt-get update
+#  sudo apt-get install -y ansible
+
+
+
+
+
+
+
+
+
+
+Ansible Installation is complete now on the Master node.
+
+
+
+
+OPEN SECURE SHELL CONNECTION – SSH Connection setup
+
+
+Step 1: Execute on Master terminal
+===============================================
+Create a new user on the terminal:
+
+
+# adduser ansiuser
+
+
+Enter New password :  ansiuser
+Retype new Password: ansiuser
+
+
+Don’t enter any value for fullname, room number, workphone, homephone other
+
+
+Just keep pressing enter key.	
+
+
+And give Y  for 
+
+
+Is the information correct ? [Y/n]  : y
+
+
+
+
+
+
+
+
+
+User will now be created.
+
+
+
+
+Step 2:
+Open the below file by executing below command:
+#  vim /etc/ssh/sshd_config
+
+
+Press i 
+Scroll down until you find PasswordAuthentication no
+Change value of PasswordAuthentication  to yes
+
+
+Save the file by pressing ESC key and then enter :wq! 🡺 press enter key
+
+
+
+Step 3:
+Add ansiuser in sudoers files and give all permission
+# vim /etc/sudoers
+Press i
+Scroll down until your find : # User privilege specification
+Now enter below line under 🡺 root    ALL=(ALL:ALL) ALL
+ansiuser ALL=NOPASSWD: ALL
+
+
+
+Save the file.
+
+Step 4:
+Execute below command :
+#    systemctl restart sshd
+
+Repeat these steps (1 to 4)  on Worker 1 and worker 2
+Step 1:
+
+
+Create a new user on the terminal:
+
+
+# adduser ansiuser
+
+
+Enter New password :  ansiuser
+Retype new Password: ansiuser
+
+
+Don’t enter any value for fullname, room number, workphone, homephone other
+
+
+Just keep pressing enter key.	
+
+
+And give Y  for 
+
+
+Is the information correct ? [Y/n]  : y
+
+Step 2:
+Open the below file by executing below command:
+#  vim /etc/ssh/sshd_config
+
+Press i 
+Scroll down until you find PasswordAuthentication no
+Change value of PasswordAuthentication  to yes
+Save the file. ( press ESC key and give :wq!  ⇒  press enter key )
+
+Step 3:
+Add ansiuser in sudoers files and give all permission
+# vim /etc/sudoers
+Press i
+Scroll down until your find : # User privilege specification
+Now enter below line under 🡺 root    ALL=(ALL:ALL) ALL
+ansiuser ALL=NOPASSWD: ALL
+
+Step 4:
+# systemctl restart sshd
+
+
+
+
+Generate SSH key on Master machine and copy SSH key on worker machine
+All These Steps will be executed on Master Machine only
+**********************
+
+Step 1: 
+Change user from root to ansiuser
+#   su - ansiuser
+
+
+Step 2:
+Generate ssh key on Master node for ansiuser
+Execute below command:
+# ssh-keygen
+
+press enter
+press enter
+press enter
+
+ssh key will be generated
+
+
+
+Now lets copy the ssh key of master machine to Worker machine1 and worker machine 2
+Execute the below command on master machine.
+Syntax:
+ ssh-copy-id -i ansiuser@privateipWorker1
+
+#  ssh-copy-id -i ansiuser@172.31.726.98
+
+
+
+Repeat the same command to copy ssh key on Worker2 also.
+
+
+
+
+Ansible Inventory File Set up
+=================================
+
+
+Inventory File:
+------------------
+Inventory is a simple file which is updated by the ansible admin with hostnames or Ip address of host servers.
+The default name of this file is hosts
+The default location of hosts file is /etc/ansible
+
+
+By default the inventory file for ansible will be available at /etc/ansible directory
+Demo:
+
+#  cd /etc/ansible
+# ls
+You will see the hosts file
+Open the hosts file and create host group name as show below
+
+# sudo vim hosts
+
+Press i to insert
+
+Scroll down and make below entry
+
+[worker1]
+Enter privateipWorker1
+
+[worker2]
+Enter PrivateipofWorker2
+
+[webserver]
+Enter Privateipworker1
+Enter Privateipworker2
+
+
+
+Save the host file.
+
+
+
+
+Let’s validate if ansible ad-hoc commands are getting executed using the host group created above.
+
+Validate if ansible can ping Worker1 in lab
+#  ansible worker1 -m ping
+
+
+
+Validate if ansible can ping Worker2 in lab
+
+# ansible worker2 -m ping
+
+
+
+Validate if ansible can ping the host group “webserver”  in lab
+In the hosts file, webserver group has Ip address of both Worker1 and worker2
+# ansible webserver -m ping
+
+
+Great! Your setup for Ansible Controller machine and Ansible Host machines is now Complete.
+==================================
+
+
+Demo:
+====================================================
+Currently we are logged in as ansiuser.
+Lets create an inventory file in home directory of ansiuser which is /home/ansiuser
+
+# cd
+# pwd
+
+
+
+Lets create a file with name as myinventory and create host group inside it
+
+# sudo vim myinventory
+Press i to insert below data
+
+[webserver]
+172.31.26.98 => <private ip worker1>
+172.31.22.35 => <private ip worker2>
+
+Save the file.
+
+
+
+Execute adhoc command using the current inventory file
+=======================================
+# cd
+# pwd
+/home/ansiuser
+In this directory let’s create an inventory file
+# sudo vim myinventory
+Make following entry in the file:
+
+[webserver]
+172.31.47.98
+172.31.42.13
+
+Save the file (:wq!)
+
+Syntax:
+ansible -i /pathtoinventoryfile  groupname -m modulename
+
+execute this command:
+#   ansible -i /home/ansiuser/myinventory webserver -m ping
+
+
+
+Let’s see a demo where we make this inventory file as your default inventory file.
+We will create a new ansible.cfg file in the same directory of ansiuser and set up the inventory file location.
+
+#   sudo vim ansible.cfg
+Press i  and enter below data
+[defaults]
+inventory = /home/ansiuser/myinventory
+
+Save the file.
+
+
+
+Now execute the adhoc command without giving the path of inventory file.
+
+# ansible webserver -m ping
+
+
+Note: Ansible always looks in the current directory for inventory file otherwise it checks for inventory file in /etc/ansible directory.
+
+
+Ad-hoc commands Demo:
+
+Syntax:
+===============
+# ansible hostgroup -m moduleName -a “arg1=value arg2=value”
+
+here:  -m = module and -a = arguments
+
+
+ansible webserver -m command -a "free -h"
+ansible webserver -m command -a "whoami"
+ansible webserver -m command -a "uptime"
+ansible webserver -m command -a "df -h"
+ansible webserver -m file -a "path=/tmp/file1 state=touch"
+ansible webserver -m command -a "ls /tmp"
+    Let's add some content in the file:
+ansible webserver -m copy -a 'content="Hello from ACM" dest=/tmp/file1'
+ansible webserver -m command -a "cat /tmp/file1"
+
+Execute below command:
+# cd /tmp
+# touch controllerfile
+
+# cd
+
+ ansible webserver -m copy -a "src=/tmp/controllerfile  dest=/tmp"
+
+ansible webserver -m copy -a 'content="Hello from ACM" dest=/tmp/file2'
+
+=======================================================
+
+Playbook:
+=======================
+
+Whenever we have to execute multiple modules/ multiple tasks on the remote server or worker nodes then we use playbook
+
+A playbook consist of plays
+
+A play consist of 2 major details:
+  > host details
+ > task to be executed
+       > modules to be executed
+In the playbook we can write variables, loops, conditions, blocks,tags,handlers and so on.
+
+Playbook are written in YAML
+
+YAML syntax is written in the form of key: value
+
+The key is provided by the tool(ansible)
+The value is given by user
+
+A key store single value or list of values
+
+Example1: 
+===============
+Trainer: Sonal
+Training: CMAT
+Timings: 7.00PM
+Days: Weekends
+
+Example2:
+=====================
+---
+Trainers:
+Sonal
+Jack
+John
+Tom
+Riya  
+
+Training:
+DevOps
+CMAT
+AWS
+
+…
+
+
+A key can store another key and value(MAP)
+==============================
+
+---
+Trainers:
+  - name: Sonal
+  - name: Tom
+  - Name: Marc
+
+
+Structure of Ansible Playbook
+====================================
+
+# vim playbook1.yml
+
+name: Give any name to play
+hosts: give the host group name
+tasks: 
+- name: Give nay name to the tasks
+  modulename: parmeter1=value prameter2=value
+
+Demo:
+===================
+
+Step 1: Create playbook that will execute a command on the hostserver:
+# vim playbookregister.yml
+- hosts: webserver
+  tasks:
+  - name: Execute a command on the host
+    command: hostname -s
+Save the file and execute
+# ansible-playbook playbookregister.yml
+
+
+The playbook is executed but we are not able to see the output of the command. We will now save the output of a command in a variable using register module.
+Again open the playbook file:
+
+# vim playbookregister.yml
+
+- hosts: webserver
+  tasks:
+  - name: Execute a command on the host
+    command: hostname -s
+    register: hostname_output
+  - name: show  the hostname_output
+    debug:
+     var: hostname_output
+
+Save the file and execute.
+# ansible-playbook playbookregister.yml
+
+
+OPTIONAL: Edit the YAMl file debug module to print only value for hostname.stdout.
+
+
+- hosts: webserver
+  tasks:
+  - name: Execute a command on the host
+    command: hostname -s
+    register: hostname_output
+  - name: show  the hostname_output
+    debug:
+      var: hostname_output.stdout
+
+
+
+
+Add timestamp to compute total time taken by each task to complete in a playbook
+
+Go to ansible.cfg file
+
+# vim ansible.cfg
+
+Add this entry
+
+callbacks_enabled = profile_tasks
+
+
+
+
+
+
+
+
+
+
+
+
+Save the file and execute your playbook -> you will see time taken to execute tasks
+
+Assignments:
+=========================
+
+>  Explain the significance of ansible.cfg file and enumerate some of the critical configurations you can define within it.
+
+ansible.cfg - to customize ansible settings and configuration
+
+> Explain the significance of idempotency in Ansible and how it influences your playbook authoring strategy
+
+> Define the percentage of allowed failures before stopping playbook execution.
+
+Write playbooks for below usecases:
+
+> Use debug module with message and variable
+> Write playbook that will get bash version from playbook
+> you can print only 1 output values , no keys of the output
+
+
+Read this:
+How would you facilitate the safe and secure deployment of new software versions using Ansible and its features such as rolling updates or blue-green deployments?
+
+To facilitate safe and secure deployment of new software versions using Ansible, I would implement rolling updates and blue-green deployments. Rolling updates minimize downtime by updating a subset of nodes at a time, ensuring the application remains available during the update process. Blue-green deployments involve creating two identical environments (blue and green) and switching between them when deploying new versions.
+
+First, I’d create an inventory file with groups for each environment (e.g., “blue” and “green”) and use variables to define their configurations. Then, I’d write a playbook that includes tasks for deploying the new version, testing it, and performing any necessary data migrations.
+
+For rolling updates, I’d configure the ‘serial’ parameter in the playbook to control how many hosts are updated simultaneously. This ensures only a portion of the infrastructure is affected at once, reducing risk and allowing for easy rollback if issues arise.
+
+In blue-green deployments, I’d use Ansible’s dynamic inventory feature to determine which environment is currently active and deploy the new version to the inactive one. After successful deployment and testing, I’d switch traffic to the newly deployed environment using load balancers or DNS changes.
+
+Finally, I’d incorporate security best practices such as encrypting sensitive data with Ansible Vault and limiting access to playbooks through role-based access control.
+
+=======================
+ What are some of the strategies you use to maintain and troubleshoot an Ansible playbook throughout its lifecycle, from initial development to ongoing updates?
+To maintain and troubleshoot an Ansible playbook, I employ the following strategies:
+
+1. Modularize playbooks using roles for reusability and organization.
+2. Utilize version control systems like Git to track changes and collaborate with team members.
+3. Implement consistent naming conventions and directory structures for clarity.
+4. Write comprehensive comments and documentation to explain complex tasks or decisions.
+5. Test playbooks in isolated environments (e.g., Vagrant, Docker) before deploying to production.
+6. Use tools such as ansible-lint and yamllint to validate syntax and follow best practices.
+7. Monitor logs and implement error handling to identify issues during runtime.
+
+
+==========================================================
+
+Agenda: Day 3:  04 May
+> Variables in Ansible
+Custom Variables
+Fact variables
+Loops
+When Condition
+Tags
+
+==============================================================
+
+Variables in Ansible:
+==============================================================
+
+Whenever we have hard code data in the play, the data may be repeated multiple times in the playbook task.
+Instead of hardcoding the data in the playbook, we can store it in the variable and call the variable in the playbook task.
+In this way, if the data changes we just have to change the value of the variable. The tasks in the playbook, does not need to be updated
+This makes the playbook reusable, the tasks can be used again and again with different set of data
+We can use variables to store output of a task. Then we can print the value of the variable
+We can use variables to set condition on the execution of the task
+Variables are very useful in case of multiple team members working on same playbook but different data
+
+There are 2 types of variables:
+Custom variables
+
+Variables which are created by the ansible admin are custom variable
+The name to the variables and value to these variables is given by user itself
+Once the variable is declared in the playbook, the value of the variable is  then referred to in the task section.
+A variable name can only include letters, numbers, and underscores. Python keywords or playbook keywords are not valid variable names. A variable name cannot begin with a number.
+Variable names can begin with an underscore
+
+
+
+Demo Custom variables 1:
+===================================
+# sudo vim playbookVariables.yml
+
+- name: Custom variables in Ansible
+  hosts: webserver
+  become: true
+  become_user: root
+  vars: # Each variable is nothing but a key: value - it is a map not a list of value
+   pkg_name: git
+   pkg_state: present
+   path: /tmp/demo.txt
+   file_state: touch
+  tasks:
+  - name: Install {{pkg_name}}  on host server
+    package: name={{pkg_name}} state={{pkg_state}}
+  - name: Create a file on host server
+    file: path={{path}}  state={{file_state}}
+
+
+
+
+
+
+
+# ansible-playbook playbookVariables.yml
+
+
+==========================================
+
+Playbook with Check_mode
+
+In check mode, Ansible runs without making any changes on remote systems. Modules that support check mode report the changes they would have made. Modules that do not support check mode report nothing and do nothing.
+
+
+Demo : 
+
+# sudo vim playbookVariables2.yml
+
+- name: Custom variables in Ansible
+  hosts: webserver
+  become: true
+  become_user: root
+  vars: # Each variable is nothing but a key: value - it is a map not a list of value
+   pkg_name: tree
+   pkg_state: present
+   path: /tmp/demo.txt
+   file_state: touch
+  tasks:
+  - name: Install {{pkg_name}}  on host server
+    package: name={{pkg_name}} state={{pkg_state}}
+    check_mode: true
+    register: package_check
+  - name: print the outout of installation
+    debug: var=package_check
+  - name: Create a file on host server
+    file: path={{path}}  state={{file_state}}
+
+
+
+
+
+# ansible-playbook playbookVariables2.yml
+
+================================================
+
+Vars_prompt block:
+====================================================
+
+Demo 3:
+
+# sudo vim playbookVarsPrompt.yml
+
+- name: Prompt variable value at runtime
+  hosts: webserver
+  become: true
+  become_user: root
+  # User will be prmpted to give the variable value at runtime
+  vars_prompt:
+  - name: pkg_name
+    prompt: Enter your package name
+    private: false
+  - name: username
+    prompt: Enter the username
+    private: false
+  - name: password
+    prompt: enter the password
+    private: true
+  tasks:
+  - name: Install {{pkg_name}} on the webserver
+    package: name={{pkg_name}} state=present
+  - name: Create a user on hostserver
+    user: name={{username}} password={{password}}
+
+
+# ansible-playbook  playbookVarsPrompt.yml
+
+
+Enter your package name: tree
+
+Enter the username: user1
+
+
+enter the password: 
+
+
+
+
+Extra:
+
+Limit execution of a playbook on a specific host:
+
+ansible-playbook --limit 172.31.3.202  playbookVarsPrompt.yml
+
+Note: the ipaddress is worker node ipaddress
+
+
+
+Demo 4:
+
+# sudo vim variables.yml
+
+pkg_name:
+ - tree
+ - git
+ - telnet
+
+pkg_state:
+ - present
+ - absent
+
+dest_path: /tmp/file1
+
+
+
+
+Save the file
+
+
+
+# sudo vim playbookVaribalefile.yml
+
+
+- name: Fetch variable values from a file
+  hosts: localhost
+  become: true
+  become_user: root
+  vars_files:
+  - variables.yml
+  tasks:
+  - name: Install {{pkg_name[0]}}
+    package: name={{pkg_name[0]}} state={{pkg_state[0]}}
+  - name: create a file
+    file: path={{dest_path}} state=touch
+
+
+
+# ansible-playbook playbookVaribalefile.yml
+
+Playbook gets executed with default values of variables mentioned in variables.yml file.
+
+
+If we have to pass a new value to the variable from run time, we cna use --extra-vars flag
+
+ # ansible-playbook playbookVaribalefile.yml --extra-vars dest_path=/tmp/filenew
+
+Pass list of values to the variable at runtime
+
+ansible-playbook playbookVaribalefile.yml --extra-vars '{"pkg_name":["maven","php"]}'
+
+
+Loops in playbook:
+===========================
+
+Suppose we have to repeat the execution of a module again and again with different set of values then we will use the concept of loops in Ansible playbook
+
+# sudo vim ansibleLoops.yml
+
+- name: loops in Ansible
+  hosts: webserver
+  become: true
+  become_user: root
+  tasks:
+  - name: create a file with name file1
+    file: path={{item}} state=touch
+    loop:
+     - /tmp/file1
+     - /tmp/file2
+     - /tmp/file3
+
+
+# ansible-playbook ansibleLoops.yml
+
+
+
+
+A combination of loop and custom variable:
+
+- name: loops in Ansible
+  hosts: webserver
+  become: true
+  become_user: root
+  vars:
+   username:
+    - user01
+    - user02
+  tasks:
+  - name: create a file with name file1
+    file: path={{item}} state=touch
+    loop:
+     - /tmp/file1
+     - /tmp/file2
+     - /tmp/file3
+  - name: Create multiple users
+    user: name={{item}} state=present
+    loop: "{{username}}"
+
+
+
+
+# ansible-playbook playbookloop.yml
+
+
+Practice playbooks for:
+===============================
+
+Write a playbook that will install multiple packages on the host server - use concept of loops for it
+Write a playbook in which we create a variable students.
+The variable stores multiple student names
+Write the tasks to print the variable values
+Write a playbook, that will create multiple users
+           The playbook should read data of users from a csv file
+
+
+Read this:
+
+Describe the process of passing variables to an Ansible playbook from the command line and how they can be utilized within the playbook.
+To pass variables to an Ansible playbook from the command line, use the ‘-e’ or ‘–extra-vars’ option followed by key-value pairs. Variables can be passed as a JSON string, YAML, or individual key-value pairs separated by spaces.
+ 
+Example: ansible-playbook my_playbook.yml -e “var1=value1 var2=value2”
+
+Ansible Playbooks are at the heart of this ingenious automation platform. They serve as blueprints for automating multi-tier applications across various environments, offering a clear, human-readable structure that can be version-controlled and shared among team members. By embracing modularity through roles and including variables for customization, playbooks enable users to create reusable and adaptable configurations that cater to diverse requirements.
+
+==================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
